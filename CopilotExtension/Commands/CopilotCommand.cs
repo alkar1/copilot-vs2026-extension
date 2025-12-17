@@ -20,14 +20,23 @@ namespace CopilotExtension.Commands
 
         private CopilotCommand(AsyncPackage package, IMenuCommandService commandService)
         {
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand: Constructor started ===");
+            
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
+
+            System.Diagnostics.Debug.WriteLine($"=== CopilotCommand: CommandSet GUID = {CommandSet} ===");
+            System.Diagnostics.Debug.WriteLine($"=== CopilotCommand: CommandId = 0x{CommandId:X4} ===");
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
 
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand: Menu command added to service ===");
+
             copilotService = new CopilotCliService();
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand: CopilotCliService created ===");
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand: Constructor completed successfully! ===");
         }
 
         public static CopilotCommand Instance { get; private set; }
@@ -36,21 +45,45 @@ namespace CopilotExtension.Commands
 
         public static async Task InitializeAsync(AsyncPackage package)
         {
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: Starting... ===");
+            
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: On main thread ===");
 
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: Getting IMenuCommandService... ===");
             IMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
+            
+            if (commandService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("=== ERROR: IMenuCommandService is NULL! ===");
+                throw new InvalidOperationException("IMenuCommandService could not be obtained");
+            }
+            
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: IMenuCommandService obtained ===");
+            
             Instance = new CopilotCommand(package, commandService);
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: Instance created ===");
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.InitializeAsync: COMPLETED! ===");
         }
 
         private async void Execute(object sender, EventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: Command triggered! ===");
+            
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             try
             {
+                System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: Getting active text view... ===");
                 var textView = await GetActiveTextViewAsync();
                 if (textView == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: No active text view ===");
+                    await ShowMessageAsync("Copilot", "No active code editor found. Please open a code file.");
                     return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: Active text view obtained ===");
 
                 var caretPosition = textView.Caret.Position.BufferPosition;
                 var currentLine = caretPosition.GetContainingLine();
@@ -60,19 +93,34 @@ namespace CopilotExtension.Commands
                 var allText = snapshot.GetText();
                 var fileName = GetFileName(textView);
 
+                System.Diagnostics.Debug.WriteLine($"=== CopilotCommand.Execute: File = {fileName} ===");
+                System.Diagnostics.Debug.WriteLine($"=== CopilotCommand.Execute: Line = {textBeforeCaret} ===");
+                System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: Calling Copilot CLI... ===");
+
                 var suggestion = await copilotService.GetSuggestionAsync(allText, textBeforeCaret, fileName);
 
                 if (!string.IsNullOrEmpty(suggestion))
                 {
+                    System.Diagnostics.Debug.WriteLine($"=== CopilotCommand.Execute: Got suggestion: {suggestion.Substring(0, Math.Min(50, suggestion.Length))}... ===");
+                    
                     using (var edit = textView.TextBuffer.CreateEdit())
                     {
                         edit.Insert(caretPosition.Position, suggestion);
                         edit.Apply();
                     }
+                    
+                    System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: Suggestion inserted! ===");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("=== CopilotCommand.Execute: No suggestion received ===");
+                    await ShowMessageAsync("Copilot", "No suggestion available. Make sure GitHub Copilot CLI is installed and configured.");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"=== CopilotCommand.Execute: ERROR - {ex.Message} ===");
+                System.Diagnostics.Debug.WriteLine($"=== Stack: {ex.StackTrace} ===");
                 await ShowMessageAsync("Copilot Error", $"Error getting suggestion: {ex.Message}");
             }
         }

@@ -20,11 +20,41 @@ namespace CopilotExtension
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Log to Debug Output
+            System.Diagnostics.Debug.WriteLine("========================================");
+            System.Diagnostics.Debug.WriteLine("=== COPILOT EXTENSION: STARTING INITIALIZATION ===");
+            System.Diagnostics.Debug.WriteLine($"=== Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+            System.Diagnostics.Debug.WriteLine($"=== Package GUID: {PackageGuidString} ===");
+            System.Diagnostics.Debug.WriteLine("========================================");
 
-            await Commands.CopilotCommand.InitializeAsync(this);
+            try
+            {
+                await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                System.Diagnostics.Debug.WriteLine("=== Switched to main thread successfully ===");
 
-            await base.InitializeAsync(cancellationToken, progress);
+                System.Diagnostics.Debug.WriteLine("=== Initializing CopilotCommand... ===");
+                await Commands.CopilotCommand.InitializeAsync(this);
+                System.Diagnostics.Debug.WriteLine("=== CopilotCommand initialized successfully! ===");
+
+                await base.InitializeAsync(cancellationToken, progress);
+                System.Diagnostics.Debug.WriteLine("=== Base package initialization completed ===");
+
+                System.Diagnostics.Debug.WriteLine("========================================");
+                System.Diagnostics.Debug.WriteLine("=== COPILOT EXTENSION: INITIALIZATION COMPLETE! ===");
+                System.Diagnostics.Debug.WriteLine("=== Extension is now ACTIVE and READY ===");
+                System.Diagnostics.Debug.WriteLine("========================================");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("========================================");
+                System.Diagnostics.Debug.WriteLine("=== COPILOT EXTENSION: INITIALIZATION FAILED! ===");
+                System.Diagnostics.Debug.WriteLine($"=== ERROR: {ex.GetType().Name} ===");
+                System.Diagnostics.Debug.WriteLine($"=== Message: {ex.Message} ===");
+                System.Diagnostics.Debug.WriteLine($"=== Stack Trace: ===");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                System.Diagnostics.Debug.WriteLine("========================================");
+                throw;
+            }
         }
 
         #endregion

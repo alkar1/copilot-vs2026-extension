@@ -14,7 +14,6 @@
     <Buttons>
       <Button guid="guidCopilotExtensionPackageCmdSet" id="CopilotCommandId" priority="0x0100" type="Button">
         <Parent guid="guidCopilotExtensionPackageCmdSet" id="CopilotMenuGroup" />
-        <Icon guid="guidImages" id="bmpCopilot" />
         <Strings>
           <ButtonText>Get Copilot Suggestion</ButtonText>
           <CommandName>Copilot.GetSuggestion</CommandName>
@@ -22,15 +21,11 @@
         </Strings>
       </Button>
     </Buttons>
-
-    <Bitmaps>
-      <Bitmap guid="guidImages" href="Resources\Icon.png" usedList="bmpCopilot"/>
-    </Bitmaps>
-
-    <KeyBindings>
-      <KeyBinding guid="guidCopilotExtensionPackageCmdSet" id="CopilotCommandId" editor="guidVSStd97" key1="VK_OEM_PERIOD" mod1="Control Alt"/>
-    </KeyBindings>
   </Commands>
+
+  <KeyBindings>
+    <KeyBinding guid="guidCopilotExtensionPackageCmdSet" id="CopilotCommandId" editor="guidVSStd97" key1="VK_OEM_PERIOD" mod1="Control Alt"/>
+  </KeyBindings>
 
   <Symbols>
     <GuidSymbol name="guidCopilotExtensionPackage" value="{f1e8d9c2-4b3a-4c5d-8e7f-9a0b1c2d3e4f}" />
@@ -38,10 +33,6 @@
     <GuidSymbol name="guidCopilotExtensionPackageCmdSet" value="{a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d}">
       <IDSymbol name="CopilotMenuGroup" value="0x1020" />
       <IDSymbol name="CopilotCommandId" value="0x0100" />
-    </GuidSymbol>
-
-    <GuidSymbol name="guidImages" value="{b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e}">
-      <IDSymbol name="bmpCopilot" value="1" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
