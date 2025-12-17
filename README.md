@@ -18,10 +18,34 @@ Dodatek do Visual Studio 2026, który integruje GitHub Copilot CLI z edytorem, za
 
 ## Wymagania
 
+### ?? Important Note
+
+**GitHub Copilot CLI Update:** The old `gh copilot` extension has been deprecated. You have several options:
+
+**Option 1: New Copilot CLI (Recommended)**
+```bash
+# Install new standalone CLI
+npm install -g @githubnext/github-copilot-cli
+
+# Or download from: https://github.com/github/copilot-cli
+```
+
+**Option 2: Use VSCode Copilot**
+- Install Visual Studio Code with GitHub Copilot extension
+- Extension will detect VSCode's Copilot
+
+**Option 3: Old Extension (Deprecated but works)**
+```bash
+# Still functional but deprecated
+gh extension install github/gh-copilot
+```
+
+### Requirements
+
 1. **Visual Studio 2026** (wersja 17.0 lub nowsza)
-2. **GitHub Copilot CLI** - Musi byæ zainstalowany i skonfigurowany
-   - Instalacja: `gh extension install github/gh-copilot`
-   - Lub zainstaluj standalone Copilot CLI
+2. **GitHub Copilot** - One of the above options
+3. **Active GitHub Copilot Subscription** - Required for API access
+   - Check: https://github.com/settings/copilot
 
 ## Instalacja
 
