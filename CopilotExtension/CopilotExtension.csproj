@@ -15,6 +15,10 @@
     <StartArguments>/rootsuffix Exp</StartArguments>
     <UseWPF>true</UseWPF>
     <NoWarn>NU1701</NoWarn>
+    <!-- VSIX Deployment Settings -->
+    <CreateVsixContainer>true</CreateVsixContainer>
+    <DeployExtension>true</DeployExtension>
+    <DeployVSTemplates>false</DeployVSTemplates>
   </PropertyGroup>
 
   <ItemGroup>
