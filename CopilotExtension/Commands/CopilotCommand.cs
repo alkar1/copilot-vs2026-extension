@@ -1,9 +1,9 @@
 using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
-using Task = System.Threading.Tasks.Task;
 using CopilotExtension.Services;
 using Microsoft.VisualStudio.ComponentModelHost;
 
@@ -18,7 +18,7 @@ namespace CopilotExtension.Commands
         private IWpfTextView currentTextView;
         private CopilotCliService copilotService;
 
-        private CopilotCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private CopilotCommand(AsyncPackage package, IMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -38,7 +38,7 @@ namespace CopilotExtension.Commands
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+            IMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             Instance = new CopilotCommand(package, commandService);
         }
 
@@ -100,6 +100,8 @@ namespace CopilotExtension.Commands
 
         private string GetFileName(IWpfTextView textView)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            
             textView.TextBuffer.Properties.TryGetProperty(typeof(Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer), out Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer bufferAdapter);
             if (bufferAdapter is Microsoft.VisualStudio.Shell.Interop.IPersistFileFormat persistFileFormat)
             {
@@ -117,20 +119,23 @@ namespace CopilotExtension.Commands
                 await ServiceProvider.GetServiceAsync(typeof(Microsoft.VisualStudio.Shell.Interop.SVsUIShell)) 
                 as Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 
-            Guid clsid = Guid.Empty;
-            int result;
-            uiShell.ShowMessageBox(
-                0,
-                ref clsid,
-                title,
-                message,
-                string.Empty,
-                0,
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_INFO,
-                0,
-                out result);
+            if (uiShell != null)
+            {
+                Guid clsid = Guid.Empty;
+                int result;
+                uiShell.ShowMessageBox(
+                    0,
+                    ref clsid,
+                    title,
+                    message,
+                    string.Empty,
+                    0,
+                    Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    Microsoft.VisualStudio.Shell.Interop.OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+                    Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_INFO,
+                    0,
+                    out result);
+            }
         }
     }
 }
