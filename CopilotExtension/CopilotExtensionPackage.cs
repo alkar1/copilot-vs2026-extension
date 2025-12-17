@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
+using CopilotExtension.Services;
 
 namespace CopilotExtension
 {
@@ -15,6 +16,8 @@ namespace CopilotExtension
     public sealed class CopilotExtensionPackage : AsyncPackage
     {
         public const string PackageGuidString = "f1e8d9c2-4b3a-4c5d-8e7f-9a0b1c2d3e4f";
+
+        private CopilotHealthMonitor healthMonitor;
 
         #region Package Members
 
@@ -36,6 +39,13 @@ namespace CopilotExtension
                 await Commands.CopilotCommand.InitializeAsync(this);
                 System.Diagnostics.Debug.WriteLine("=== CopilotCommand initialized successfully! ===");
 
+                System.Diagnostics.Debug.WriteLine("=== Initializing TddCommands... ===");
+                await Commands.TddCommands.InitializeAsync(this);
+                System.Diagnostics.Debug.WriteLine("=== TddCommands initialized successfully! ===");
+
+                // Initialize health monitoring
+                await InitializeHealthMonitorAsync();
+
                 await base.InitializeAsync(cancellationToken, progress);
                 System.Diagnostics.Debug.WriteLine("=== Base package initialization completed ===");
 
@@ -55,6 +65,75 @@ namespace CopilotExtension
                 System.Diagnostics.Debug.WriteLine("========================================");
                 throw;
             }
+        }
+
+        private async Task InitializeHealthMonitorAsync()
+        {
+            try
+            {
+                var copilotService = new CopilotCliService();
+                healthMonitor = new CopilotHealthMonitor(copilotService);
+
+                // Subscribe to health events
+                healthMonitor.HealthStatusChanged += OnCopilotHealthStatusChanged;
+                healthMonitor.RestartAttempted += OnCopilotRestartAttempted;
+
+                // Start monitoring
+                healthMonitor.StartMonitoring();
+
+                System.Diagnostics.Debug.WriteLine("[CopilotExtension] Health monitoring initialized");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CopilotExtension] Failed to initialize health monitor: {ex.Message}");
+            }
+        }
+
+        private void OnCopilotHealthStatusChanged(object sender, CopilotHealthEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CopilotExtension] Copilot health: {e.Status} - {e.Message}");
+
+            // Optionally show status bar message for critical states
+            if (e.Status == CopilotHealthStatus.Failed)
+            {
+                _ = ShowStatusMessageAsync($"?? GitHub Copilot failed ({e.ConsecutiveFailures} failures). Attempting restart...");
+            }
+            else if (e.Status == CopilotHealthStatus.Healthy && e.ConsecutiveFailures > 0)
+            {
+                _ = ShowStatusMessageAsync("? GitHub Copilot recovered");
+            }
+        }
+
+        private void OnCopilotRestartAttempted(object sender, string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CopilotExtension] Restart attempt: {message}");
+            _ = ShowStatusMessageAsync($"?? Copilot: {message}");
+        }
+
+        private async Task ShowStatusMessageAsync(string message)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            
+            try
+            {
+                var statusBar = await GetServiceAsync(typeof(Microsoft.VisualStudio.Shell.Interop.SVsStatusbar)) 
+                    as Microsoft.VisualStudio.Shell.Interop.IVsStatusbar;
+                
+                statusBar?.SetText(message);
+            }
+            catch
+            {
+                // Ignore errors showing status message
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                healthMonitor?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         #endregion
