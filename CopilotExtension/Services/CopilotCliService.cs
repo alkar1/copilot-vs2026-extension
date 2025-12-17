@@ -19,22 +19,39 @@ namespace CopilotExtension.Services
 
         private string FindCopilotCli()
         {
+            // Try new Copilot CLI first (recommended)
+            if (IsCommandAvailable("github-copilot-cli"))
+            {
+                return "github-copilot-cli";
+            }
+
+            // Try old gh copilot extension (deprecated but may still work)
+            if (IsCommandAvailable("gh"))
+            {
+                return "gh copilot suggest";
+            }
+
+            // Check specific paths
             var possiblePaths = new[]
             {
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".copilot", "copilot.exe"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GitHub Copilot CLI", "copilot.exe"),
-                "copilot"
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+                    "AppData", "Roaming", "npm", "github-copilot-cli.cmd"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+                    ".copilot", "copilot.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+                    "GitHub Copilot CLI", "copilot.exe"),
             };
 
             foreach (var path in possiblePaths)
             {
-                if (File.Exists(path) || IsCommandAvailable(path))
+                if (File.Exists(path))
                 {
                     return path;
                 }
             }
 
-            return "gh copilot suggest";
+            // Default fallback
+            return "github-copilot-cli";
         }
 
         private bool IsCommandAvailable(string command)
@@ -144,12 +161,30 @@ Provide only the code completion, without explanations.";
 
         private async Task<string> ExecuteCopilotCliAsync(string prompt)
         {
+            var isNewCli = copilotCliPath.Contains("github-copilot-cli");
+            
+            string command;
+            string arguments;
+
+            if (isNewCli)
+            {
+                // New CLI format
+                command = "cmd.exe";
+                arguments = $"/c github-copilot-cli what-the-shell \"{prompt.Replace("\"", "\"\"")}\"";
+            }
+            else
+            {
+                // Old CLI format
+                command = "cmd.exe";
+                arguments = $"/c {copilotCliPath} \"{prompt.Replace("\"", "\"\"")}\"";
+            }
+
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {copilotCliPath} \"{prompt.Replace("\"", "\"\"")}\"",
+                    FileName = command,
+                    Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
