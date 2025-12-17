@@ -11,9 +11,6 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
-    <StartAction>Program</StartAction>
-    <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix Exp</StartArguments>
     <UseWPF>true</UseWPF>
     <NoWarn>NU1701</NoWarn>
     
@@ -22,9 +19,9 @@
     <DeployExtension>true</DeployExtension>
     <DeployVSTemplates>false</DeployVSTemplates>
     
-    <!-- Output paths -->
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+    <!-- Debug Configuration - DO NOT START EXE -->
+    <!-- Extension is already deployed, just attach -->
+    <StartAction>None</StartAction>
   </PropertyGroup>
 
   <ItemGroup>
