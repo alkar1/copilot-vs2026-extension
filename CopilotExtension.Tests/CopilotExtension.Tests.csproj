@@ -19,5 +19,7 @@
 
   <ItemGroup>
     <Compile Include="..\CopilotExtension\Services\CopilotCliService.cs" Link="Services\CopilotCliService.cs" />
+    <Compile Include="..\CopilotExtension\Services\TddCycleService.cs" Link="Services\TddCycleService.cs" />
+    <Compile Include="..\CopilotExtension\Services\TestRunnerService.cs" Link="Services\TestRunnerService.cs" />
   </ItemGroup>
 </Project>
