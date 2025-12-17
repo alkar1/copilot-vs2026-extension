@@ -1,5 +1,11 @@
 # Copilot CLI Extension for Visual Studio 2026
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
+[![Tests](https://img.shields.io/badge/tests-71%2F71%20passed-brightgreen)](https://github.com/alkar1/copilot-vs2026-extension)
+
+**GitHub Repository:** https://github.com/alkar1/copilot-vs2026-extension
+
 Dodatek do Visual Studio 2026, który integruje GitHub Copilot CLI z edytorem, zapewniaj¹c inteligentne sugestie kodu w czasie rzeczywistym.
 
 ## Funkcje
